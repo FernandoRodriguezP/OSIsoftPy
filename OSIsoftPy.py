@@ -28,70 +28,68 @@ from OSIsoft.AF.UnitsOfMeasure import *
 
 class OSIsoftPy(object):
 
-    ##FUNCION PARA REALIZAR LA CONEXION CON UN SERVIDOR PI
+    ## CONNECT TO PI SERVER
     def connect_to_Server(serverName):  
         piServers = PIServers()  
         global piServer  
-        piServer = piServers[serverName]  
-        piServer.Connect(False)
-        print ('Conectado al servidor: ' + serverName)
+        piServer = piServers[serverName]                                                    #Write PI Server Name
+        piServer.Connect(False)                                                             #Connect to PI Server
+        print ('Connected to server: ' + serverName)
+        
+    ## CONNECT TO AF SERVER AND PRINT ATTRIBUTE VALUE
+    def connect_to_AF(AFserverName, Database, Tech, Plant, Unit, Attribute): 
+        afServers = PISystems()  
+        afServer = afServers[AFserverName]                                                  #Write AF Server Name
+        afServer.Connect()                                                                  #Connect to AF Server
+        DB = afServer.Databases.get_Item(Database)                                          #Define architecture
+        element = DB.Elements.get_Item(Tech).Elements.get_Item(Plant).Elements.get_Item(Plant + " " + Unit)
+        attribute = element.Attributes.get_Item(Attribute)
+        attval = attribute.GetValue()
+        print ('Element Name: {0}'.format(element.Name))                                    #Print Attributr Value
+        print ('Attribute Name: {0} \nValue: {1} \nUOM: {2}'.format(attribute.Name, attval.Value, attribute.DefaultUOM))
 
-    ##FUNCION PARA ESCRIBIR UN VALOR EN UN TAG
+    ## WRITE TAG VALUE IN PI TAG
     def write_tag(tagname, value, datetime):  
-        writept = PIPoint.FindPIPoint(piServer, tagname)  #Seleccionas el servidor y el tag deseado
-        val = AFValue(value, AFTime(datetime)) #Seleccionas el valor y el timestamp
-        writept.UpdateValue(val, AFUpdateOption.Replace, AFBufferOption.BufferIfPossible)   #Escribes el valor
-        print ('Tag "' + tagname + '" actualizado.')
+        writept = PIPoint.FindPIPoint(piServer, tagname)                                    #Select PI Server and Tag name
+        val = AFValue(value, AFTime(datetime))                                              #Select Value and Timestamp
+        writept.UpdateValue(val, AFUpdateOption.Replace, AFBufferOption.BufferIfPossible)   #Write value
+        print ('Tag "' + tagname + '" updated.')                                            #Print Tag Name updated
 
-    ##FUNCION PARA IMPRIMIR EL ULTIMO VALOR ALMACENADO DE UN TAG
+    ## GET SNAPSHOT TAG VALUE
     def get_tag_snapshot(tagname):  
         tag = PIPoint.FindPIPoint(piServer, tagname)  
-        lastData = tag.Snapshot()
-        print ('Ultimo valor almacenado en el PI Tag ' + tagname + ' = ' + str(lastData))
+        lastData = tag.Snapshot()                                                           #Get Snapshot
+        print ('Last Value in PI Tag ' + tagname + ' = ' + str(lastData))                   #Print Tag Value
         return lastData.Value, lastData.Timestamp
 
-    ##FUNCION PARA MOSTRAR LOS VALORES GRABADOS EN UN TAG DENTRO DE UN RANGO TEMPORAL (¡CON INTERVALO!)
+    ## GET SAMPLED VALUES
     def sampled_values(tagname, initdate, enddate, span):
-        tag = PIPoint.FindPIPoint(piServer, tagname)   
-        timerange = AFTimeRange(initdate, enddate)
-        sampled = tag.InterpolatedValues(timerange, AFTimeSpan.Parse(span), '', False)  
-        print('\nMostrando valores almacenados en el PI Tag {0}'.format(tagname))  
+        tag = PIPoint.FindPIPoint(piServer, tagname)                                        #Select PI Server and Tag name
+        timerange = AFTimeRange(initdate, enddate)                                          #Select Time Range (Osisoft PI format)
+        sampled = tag.InterpolatedValues(timerange, AFTimeSpan.Parse(span), '', False)      #Get Sampled Values (IMPORTANT: Define Span)
+        print('\nShowing sampled values in PI Tag {0}'.format(tagname))                     #Print Sampled Values
         for event in sampled:  
             print('{0} value: {1}'.format(event.Timestamp.LocalTime, event.Value)) 
 
-    ##FUNCION PARA BUSCAR TAGS
-    def find_tags(mask):
-        points = PIPoint.FindPIPoints(piServer, mask, None, None)
-        points = list(points) #casting it to a Python list
-        return [print(i.get_Name()) for i in points]
-
-    ##FUNCION PARA MOSTRAR TODOS LOS VALORES GRABADOS EN UN TAG DENTRO DE UN RANGO TEMPORAL
+    ## GET RECORDED VALUES
     def recorded_values(tagname, initdate, enddate):
-        tag = PIPoint.FindPIPoint(piServer, tagname)   
-        timerange = AFTimeRange(initdate, enddate)  
-        recorded = tag.RecordedValues(timerange, AFBoundaryType.Inside, "", False)  
-        print('\nMostrando valores almacenados en el PI Tag {0}'.format(tagname))  
+        tag = PIPoint.FindPIPoint(piServer, tagname)                                        #Select PI Server and Tag name
+        timerange = AFTimeRange(initdate, enddate)                                          #Select Time Range (Osisoft PI format)
+        recorded = tag.RecordedValues(timerange, AFBoundaryType.Inside, "", False)          #Get Recorded Values in Time Range
+        print('\nShowing recorded values in PI Tag {0}'.format(tagname))                    #Print Recorded Values
         for event in recorded:  
             print('{0} value: {1}'.format(event.Timestamp.LocalTime, event.Value)) 
+            
+    ## FIND TAGS
+    def find_tags(mask):
+        points = PIPoint.FindPIPoints(piServer, mask, None, None)                           #Select PI Server and Mask
+        points = list(points)
+        return [print(i.get_Name()) for i in points]                                        #Print coincidences
 
-    ##FUNCION PARA BORRAR VALORES EN UN TAG
+    ## DELETE TAG VALUES IN PI TAG
     def delete_values(tagname, initdate, enddate):
-        deleteval = PIPoint.FindPIPoint(piServer, tagname)  #Seleccionas el servidor y el tag deseado
-        timerange = AFTimeRange(initdate, enddate)
-        recorded = deleteval.RecordedValues(timerange, AFBoundaryType.Inside, "", False) 
-        deleteval.UpdateValues(recorded, AFUpdateOption.Remove)
-        print ('\nValor seleccionado del PI Tag "' + tagname + '" eliminado.')
-
-##FUNCION PARA ACCEDER A UNA BASE DE DATOS AF
-    def connect_to_AF(AFserverName, Database, Tech, Plant, Unit, Attribute): 
-        afServers = PISystems()  
-        afServer = afServers[AFserverName]
-        afServer.Connect()
-        DB = afServer.Databases.get_Item(Database)
-        element = DB.Elements.get_Item(Tech).Elements.get_Item(Plant).Elements.get_Item(Plant + " " + Unit)
-        #element = DB.Elements.get_Item(Tech).Elements.get_Item(Plant)
-        attribute = element.Attributes.get_Item(Attribute)
-        attval = attribute.GetValue()
-          
-        print ('Element Name: {0}'.format(element.Name))  
-        print ('Attribute Name: {0} \nValue: {1} \nUOM: {2}'.format(attribute.Name, attval.Value, attribute.DefaultUOM))
+        deleteval = PIPoint.FindPIPoint(piServer, tagname)                                  #Select PI Server and Tag Name
+        timerange = AFTimeRange(initdate, enddate)                                          #Select Time Range (Osisoft PI format)
+        recorded = deleteval.RecordedValues(timerange, AFBoundaryType.Inside, "", False)    #Get Recorded Values in Time Range
+        deleteval.UpdateValues(recorded, AFUpdateOption.Remove)                             #Delete Recorded Values in Time Range
+        print ('\nTag Values selected of PI Tag "' + tagname + '" have been deleted.')      #Print Tag Name updated
