@@ -1,5 +1,5 @@
 # OSIsoftPy
-
+*OsisoftPy is a Python library for OSIsoft PI SDK.*
 ## Summary
 
 This library provides access to OSIsoft PI data from Python.
