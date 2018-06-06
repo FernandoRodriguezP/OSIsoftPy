@@ -93,3 +93,14 @@ class OSIsoftPy(object):
         recorded = deleteval.RecordedValues(timerange, AFBoundaryType.Inside, "", False)    #Get Recorded Values in Time Range
         deleteval.UpdateValues(recorded, AFUpdateOption.Remove)                             #Delete Recorded Values in Time Range
         print ('\nTag Values selected of PI Tag "' + tagname + '" have been deleted.')      #Print Tag Name updated
+       
+        attribute.SetValue(AFValue(Value2))
+        attribute.SetValue(AFValue(Value2))
+        attribute.SetValue(AFValue(Value2))
+        attribute.SetValue(AFValue(Value2))
+        attribute.SetValue(AFValue(Value2))
+        attribute.SetValue(AFValue(Value2))
+        attribute.SetValue(AFValue(Value2))
+        attribute.SetValue(AFValue(Value2))
+        attribute.SetValue(AFValue(Value2))
+        attribute.SetValue(AFValue(Value2))
