@@ -94,13 +94,13 @@ class OSIsoftPy(object):
         deleteval.UpdateValues(recorded, AFUpdateOption.Remove)                             #Delete Recorded Values in Time Range
         print ('\nTag Values selected of PI Tag "' + tagname + '" have been deleted.')      #Print Tag Name updated
        
-        attribute.SetValue(AFValue(Value2))
-        attribute.SetValue(AFValue(Value2))
-        attribute.SetValue(AFValue(Value2))
-        attribute.SetValue(AFValue(Value2))
-        attribute.SetValue(AFValue(Value2))
-        attribute.SetValue(AFValue(Value2))
-        attribute.SetValue(AFValue(Value2))
-        attribute.SetValue(AFValue(Value2))
-        attribute.SetValue(AFValue(Value2))
+    ## UPDATE AF ATTRIBUTES
+    def update_AF_attribute(AFserverName, Database, Elem, Tech, Plant, Unit, Attribute1, Value1, Attribute2, Value2):
+        afServers = PISystems()
+        afServer = afServers[AFserverName]
+        DB = afServer.Databases.get_Item(Database)
+        element = DB.Elements.get_Item(Elem).Elements.get_Item(Tech).Elements.get_Item(Plant).Elements.get_Item(Unit)
+        attribute = element.Attributes.get_Item(Attribute1)
+        attribute.SetValue(AFValue(Value1))
+        attribute = element.Attributes.get_Item(Attribute2)
         attribute.SetValue(AFValue(Value2))
